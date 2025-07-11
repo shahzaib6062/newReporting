@@ -3,15 +3,20 @@ import { Card, CardContent } from "./ui/card";
 import { Globe } from "lucide-react";
 
 export default function ArticleCard({ article }: { article: Article }) {
+  if (!article || !article.url || !article.title) return null;
+
   return (
     <a
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="transition-transform hover:scale-[1.02] active:scale-[0.98]"
+      className="block transform transition duration-300 ease-in-out hover:scale-[1.03] hover:shadow-xl group relative"
     >
-      <Card className="flex flex-col overflow-hidden h-full border border-black bg-white">
-        {/* 🖼 Image */}
+      {/*Animated top border */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-red-600 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 ease-out rounded-t" />
+
+      <Card className="overflow-hidden h-full border border-gray-200 bg-white text-black rounded-md">
+        {/* Full Card Zoom Includes Image */}
         {article.urlToImage && (
           <img
             src={article.urlToImage}
@@ -20,19 +25,19 @@ export default function ArticleCard({ article }: { article: Article }) {
           />
         )}
 
-        <CardContent className="p-4 flex flex-col flex-1">
-          {/* 📰 Title */}
-          <h2 className="text-base sm:text-lg font-semibold text-black mb-2 line-clamp-2">
+        <CardContent className="p-4 flex flex-col h-full">
+          {/* Title */}
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
             {article.title}
           </h2>
 
-          {/* 📄 Description */}
-          <p className="text-sm text-black flex-1 line-clamp-3">
+          {/* Description */}
+          <p className="text-sm text-gray-600 flex-1 line-clamp-3">
             {article.description}
           </p>
 
-          {/* 🕒 Meta */}
-          <div className="mt-3 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          {/* Meta Info */}
+          <div className="mt-3 flex items-center gap-2 text-xs text-gray-500 ">
             <Globe className="w-4 h-4" />
             <span>{article.source?.name}</span>
             <span className="mx-1">•</span>

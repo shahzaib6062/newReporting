@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -5,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { motion } from "framer-motion";
@@ -22,23 +23,22 @@ const SOURCE_OPTIONS = [
 export default function PreferencesModel({
   isOpen,
   onClose,
+  onSave,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  onSave: () => void;
 }) {
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [query, setQuery] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
-      const saved = localStorage.getItem("preferredSources");
-      if (saved) setSelectedSources(JSON.parse(saved));
+      const savedSources = localStorage.getItem("preferredSources");
+      const savedCategories = localStorage.getItem("preferredCategories");
+      setSelectedSources(savedSources ? JSON.parse(savedSources) : []);
+      setSelectedCategories(savedCategories ? JSON.parse(savedCategories) : []);
     }
-    const savedCategory = localStorage.getItem("preferredCategory");
-    const savedQuery = localStorage.getItem("preferredQuery");
-    setSelectedCategory(savedCategory || "");
-    setQuery(savedQuery || "");
   }, [isOpen]);
 
   const toggleSource = (sourceId: string) => {
@@ -49,14 +49,24 @@ export default function PreferencesModel({
     );
   };
 
-  const savePreferences = () => {
-    localStorage.setItem("preferredSources", JSON.stringify(selectedSources));
-    localStorage.setItem("preferredCategory", selectedCategory);
-    localStorage.setItem("preferredQuery", query);
-    onClose();
+  const toggleCategory = (cat: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(cat)
+        ? prev.filter((c) => c !== cat)
+        : [...prev, cat]
+    );
   };
 
-  const resetAll = () => setSelectedSources([]);
+  const savePreferences = () => {
+    localStorage.setItem("preferredSources", JSON.stringify(selectedSources));
+    localStorage.setItem("preferredCategories", JSON.stringify(selectedCategories));
+    onSave();
+  };
+
+  const resetAll = () => {
+    setSelectedSources([]);
+    setSelectedCategories([]);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -72,62 +82,40 @@ export default function PreferencesModel({
             </DialogTitle>
           </DialogHeader>
 
-          {/* Search */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-black mb-1">
-             Search Keywords
-            </h3>
-            <p className="text-sm text-black mb-2">
-              Enter keywords to personalize your feed. Leave empty to show all.
+          {/* News Sources */}
+          <div className="bg-white border border-purple-200 rounded-xl shadow p-6 mb-6">
+            <h3 className="font-bold text-lg text-black mb-2">News Sources</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Select your preferred sources. Leave empty to include all.
             </p>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g., climate change, technology, Elon Musk..."
-            />
-          </div>
-
-          {/* Sources */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-black mb-1">
-              News Sources
-            </h3>
-            <p className="text-sm text-black mb-2">
-              Select preferred sources. Leave empty to show from all.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {SOURCE_OPTIONS.map((source) => (
                 <label
                   key={source.id}
-                  className={`flex items-center gap-2 p-3 border rounded-md cursor-pointer transition ${
+                  className={`flex items-center gap-2 p-3 border-2 rounded-md cursor-pointer transition ${
                     selectedSources.includes(source.id)
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-600"
-                  }`}
+                      ? "border-red-600 bg-gray-200"
+                      : "border-gray-900"
+                  } hover:bg-gray-200`}
                 >
                   <Checkbox
                     checked={selectedSources.includes(source.id)}
                     onCheckedChange={() => toggleSource(source.id)}
+                    className="accent-red-600"
                   />
-                  <span className="text-sm text-black">
-                    {source.label}
-                  </span>
+                  <span className="text-sm text-black">{source.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
-           {/* Categories  */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-700 mb-1">
-              Category
-            </h3>
-            <p className="text-sm text-gray-500 mb-2">
-              Choose one category. Leave empty to include all.
+          {/* Categories */}
+          <div className="bg-white border border-purple-200 rounded-xl shadow p-6 mb-6">
+            <h3 className="font-bold text-lg text-black mb-2">Categories</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Choose one category. Leave empty to see all.
             </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
                 "business",
                 "entertainment",
@@ -139,36 +127,40 @@ export default function PreferencesModel({
               ].map((cat) => (
                 <Button
                   key={cat}
-                  variant={selectedCategory === cat ? "default" : "outline"}
-                  onClick={() => setSelectedCategory(cat)}
-                  className="text-sm capitalize"
+                  variant={selectedCategories.includes(cat) ? "default" : "outline"}
+                  onClick={() => toggleCategory(cat)}
+                  className={`text-sm capitalize border-2 rounded-md ${selectedCategories.includes(cat) ? 'border-red-600 bg-gray-200' : 'border-gray-900 hover:bg-gray-200'}`}
                 >
                   {cat}
                 </Button>
               ))}
-
-              {/* All */}
-              <Button
-                variant={selectedCategory === "" ? "secondary" : "outline"}
-                onClick={() => setSelectedCategory("")}
-                className="text-sm"
-              >
-                All Categories
-              </Button>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-between items-center pt-4 border-t dark:border-gray-800">
-            <Button variant="ghost" onClick={onClose}>
+          {/* Action Buttons */}
+          <div className="flex justify-between items-center pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="cursor-pointer hover:bg-gray-200"
+            >
               Cancel
             </Button>
-
             <div className="flex gap-2">
-              <Button variant="outline" onClick={resetAll}>
-                Reset
+              <Button
+                variant="outline"
+                onClick={resetAll}
+                className="cursor-pointer hover:bg-gray-200"
+              >
+                Reset All
               </Button>
-              <Button onClick={savePreferences}> Save Preferences</Button>
+              <Button
+                variant="outline"
+                onClick={savePreferences}
+                className="cursor-pointer hover:bg-gray-200"
+              >
+                Save Preferences
+              </Button>
             </div>
           </div>
         </motion.div>
