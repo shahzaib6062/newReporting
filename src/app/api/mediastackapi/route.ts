@@ -1,47 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const MEDIASTACK_API_KEY = process.env.MEDIASTACK_API_KEY!;
+const API_KEY = process.env.MEDIASTACK_API_KEY!;
 const BASE_URL = process.env.MEDIASTACK_API_URL!;
-
-interface MediastackNewsItem {
-  title: string;
-  description: string;
-  url: string;
-  image: string;
-  published_at: string;
-  source: string;
-  author?: string;
-  category?: string;
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("query") || "";
   const category = searchParams.get("category") || "";
-  const fromDate = searchParams.get("fromDate") || "";
-  const toDate = searchParams.get("toDate") || "";
+  const from = searchParams.get("fromDate") || "";
+  const to = searchParams.get("toDate") || "";
   const page = parseInt(searchParams.get("page") || "1");
 
-  const apiKey = MEDIASTACK_API_KEY;
   const limit = 20;
   const offset = (page - 1) * limit;
-
   const url = new URL(`${BASE_URL}`);
-  url.searchParams.append("access_key", apiKey);
+
+  url.searchParams.append("access_key", API_KEY);
   url.searchParams.append("languages", "en");
   url.searchParams.append("limit", limit.toString());
   url.searchParams.append("offset", offset.toString());
-
   if (query) url.searchParams.append("keywords", query);
-  if (category) url.searchParams.append("categories", category);
-  if (fromDate) url.searchParams.append("date", fromDate);
-  if (toDate) url.searchParams.append("date", toDate); // Mediastack only supports one `date`, so use the last valid one
+  if (category) url.searchParams.append("categories", category.toLowerCase());
+  if (to) url.searchParams.append("date", to);
+  else if (from) url.searchParams.append("date", from); // only one date allowed
 
   try {
     const response = await fetch(url.toString());
     const data = await response.json();
 
-    const articles = (data.data || []).map((item: MediastackNewsItem) => ({
+    const articles = (data.data || []).map((item: any) => ({
       title: item.title,
       description: item.description,
       url: item.url,
