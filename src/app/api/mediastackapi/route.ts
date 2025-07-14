@@ -33,6 +33,13 @@ export async function GET(request: NextRequest) {
     const response = await fetch(url.toString());
     const data = await response.json();
 
+    if (!Array.isArray(data.data)) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Mediastack API error:', data);
+      }
+      return NextResponse.json({ error: 'Mediastack API error', details: data }, { status: 500 });
+    }
+
     const articles = data.data.map((item: MediastackNewsItem) => ({
       title: item.title,
       description: item.description,
@@ -44,7 +51,10 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(articles);
-  } catch {
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Mediastack API fetch error:', error);
+    }
     return NextResponse.json({ error: "Failed to fetch news" }, { status: 500 });
   }
 }

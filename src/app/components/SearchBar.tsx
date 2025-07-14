@@ -39,7 +39,7 @@ export default function SearchBar({
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [debouncedQuery]);
+  }, [debouncedQuery, onSearch]);
 
   const updateSearchHistory = (keyword: string) => {
     const existing = JSON.parse(localStorage.getItem("searchHistory") || "[]");

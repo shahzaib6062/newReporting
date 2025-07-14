@@ -29,6 +29,13 @@ export async function GET(request: NextRequest) {
     const res = await fetch(url.toString());
     const data = await res.json();
 
+    if (!data.response || !Array.isArray(data.response.results)) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Guardian API error:', data);
+      }
+      return NextResponse.json({ error: 'Guardian API error', details: data }, { status: 500 });
+    }
+
     const articles = data.response.results.map((item: GuardianNewsItem) => ({
       title: item.webTitle,
       description: item.fields?.trailText || "",
@@ -40,7 +47,10 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(articles);
-  } catch {
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Guardian API fetch error:', error);
+    }
     return NextResponse.json({ error: "Failed to fetch news" }, { status: 500 });
   }
 }

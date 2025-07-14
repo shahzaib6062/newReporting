@@ -40,6 +40,7 @@ export default function Home({
   const latestFiltersRef = useRef<FilterValues | null>(filters || null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  // Move these constants outside the component to prevent recreation on every render
   const SOURCE_KEY_MAP: Record<string, string> = {
     "NewsAPI": "newsapi",
     "The Guardian": "guardian",
@@ -47,6 +48,13 @@ export default function Home({
     "Currents API": "currents",
     "GNews API": "gnews"
   };
+
+  const GNEWS_TOPICS = [
+    "world", "nation", "business", "technology", "entertainment", "sports", "science", "health"
+  ];
+  const MEDIASTACK_CATEGORIES = [
+    "business", "entertainment", "general", "health", "science", "sports", "technology"
+  ];
 
   const fetchAllNews = async (
     queryStr: string,
@@ -75,13 +83,6 @@ export default function Home({
       sources = preferredSources.map(src => SOURCE_KEY_MAP[src] || src);
       category = preferredCategories.length > 0 ? preferredCategories.join(",") : "";
     }
-
-    const GNEWS_TOPICS = [
-      "world", "nation", "business", "technology", "entertainment", "sports", "science", "health"
-    ];
-    const MEDIASTACK_CATEGORIES = [
-      "business", "entertainment", "general", "health", "science", "sports", "technology"
-    ];
 
     const fetchIfAllowed = async (sourceKey: string, endpoint: string) => {
       if (
