@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   try {
     const response = await fetch(url.toString());
     const data = await response.json();
-    return NextResponse.json((data.articles || []).map((article: any) => ({
+    return NextResponse.json((data.articles || []).map((article: Record<string, unknown>) => ({
       ...article,
       author: article.author || "Unknown Author",
     })));

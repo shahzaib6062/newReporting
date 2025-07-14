@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       // Log the full error for debugging
       if (process.env.NODE_ENV !== 'production') {
-        // eslint-disable-next-line no-console
         console.error('GNews API error:', data);
       }
       return NextResponse.json({ error: data.error || "Failed to fetch news" }, { status: 500 });
@@ -45,8 +44,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(articles);
   } catch (e) {
     if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
-      console.error('GNews API Exception:', e);
+      console.error(e);
     }
     return NextResponse.json({ error: "Failed to fetch news" }, { status: 500 });
   }

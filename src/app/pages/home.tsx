@@ -150,7 +150,7 @@ export default function Home({
     setLoading(false);
   };
 
-  const fetchAllNewsCallback = useCallback(fetchAllNews, [preferredSources, preferredCategories]);
+  const fetchAllNewsCallback = useCallback(fetchAllNews, [preferredSources, preferredCategories, SOURCE_KEY_MAP]);
 
   useEffect(() => {
     latestFiltersRef.current = filters || null;

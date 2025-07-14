@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const res = await fetch(url.toString());
     const data = await res.json();
 
-    const articles = (data.news || []).map((item: any) => ({
+    const articles = (data.news || []).map((item: Record<string, unknown>) => ({
       title: item.title,
       description: item.description,
       url: item.url,
