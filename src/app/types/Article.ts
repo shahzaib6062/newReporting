@@ -7,4 +7,6 @@ export interface Article {
   source: {
     name: string;
   };
+  author?: string;
+  category?: string;
 }

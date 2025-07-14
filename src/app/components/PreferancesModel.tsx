@@ -27,7 +27,7 @@ export default function PreferencesModel({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (sources: string[], categories: string[]) => void;
 }) {
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -60,7 +60,7 @@ export default function PreferencesModel({
   const savePreferences = () => {
     localStorage.setItem("preferredSources", JSON.stringify(selectedSources));
     localStorage.setItem("preferredCategories", JSON.stringify(selectedCategories));
-    onSave();
+    onSave(selectedSources, selectedCategories);
   };
 
   const resetAll = () => {

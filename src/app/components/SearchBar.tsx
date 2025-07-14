@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { Search, X, Trash2 } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import FilterLogo from "./FilterLogo";
 
 interface SearchBarProps {
   query: string;
   setQuery: (q: string) => void;
   onSearch: () => void;
   searchHistory: string[];
+  onFilterClick?: () => void;
 }
 
 export default function SearchBar({
@@ -17,29 +19,40 @@ export default function SearchBar({
   setQuery,
   onSearch,
   searchHistory,
+  onFilterClick,
 }: SearchBarProps) {
   const [localHistory, setLocalHistory] = useState<string[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   useEffect(() => {
     setLocalHistory(searchHistory);
   }, [searchHistory]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  // Debounce logic
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (debouncedQuery.trim()) {
+        localStorage.setItem("preferredQuery", debouncedQuery);
+        updateSearchHistory(debouncedQuery);
+        onSearch();
+      }
+    }, 500);
 
+    return () => clearTimeout(timer);
+  }, [debouncedQuery]);
+
+  const updateSearchHistory = (keyword: string) => {
     const existing = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-    const updated = [query, ...existing.filter((item: string) => item !== query)].slice(0, 5);
+    const updated = [keyword, ...existing.filter((item: string) => item !== keyword)].slice(0, 5);
     localStorage.setItem("searchHistory", JSON.stringify(updated));
-    localStorage.setItem("preferredQuery", query);
     setLocalHistory(updated);
-    onSearch();
   };
 
   const handleClear = () => {
     setQuery("");
+    setDebouncedQuery("");
     localStorage.removeItem("preferredQuery");
-    onSearch(); // Trigger refresh with empty query
+    onSearch();
   };
 
   const handleClearHistory = () => {
@@ -47,32 +60,44 @@ export default function SearchBar({
     setLocalHistory([]);
   };
 
+  const handleRecentClick = (keyword: string) => {
+    setQuery(keyword);
+    setDebouncedQuery(keyword);
+    localStorage.setItem("preferredQuery", keyword);
+    updateSearchHistory(keyword);
+    onSearch();
+  };
+
   return (
     <div className="max-w-4xl mx-auto mt-6 flex flex-col gap-3">
-      {/*  Search Input */}
-      <form onSubmit={handleSearch} className="flex gap-2 items-center">
+      <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 items-center">
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setDebouncedQuery(e.target.value);
+            }}
             placeholder="Search articles..."
-            className="pl-10 pr-10 py-2 text-sm"
+            className="pl-10 pr-16 py-2 text-sm"
           />
           {query && (
             <X
               onClick={handleClear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+              className="absolute right-10 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer"
               aria-label="Clear search"
             />
           )}
+          <span className="absolute right-3 top-1/2 -translate-y-1/2">
+            <FilterLogo onClick={onFilterClick} />
+          </span>
         </div>
         <Button type="submit" variant="outline">
           Search
         </Button>
       </form>
 
-      {/*  Search History */}
       {localHistory.length > 0 && (
         <div className="flex items-center justify-between text-sm text-gray-600">
           <div className="flex flex-wrap gap-2">
@@ -80,11 +105,7 @@ export default function SearchBar({
             {localHistory.map((keyword, idx) => (
               <button
                 key={idx}
-                onClick={() => {
-                  setQuery(keyword);
-                  localStorage.setItem("preferredQuery", keyword);
-                  onSearch();
-                }}
+                onClick={() => handleRecentClick(keyword)}
                 className="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300 transition text-xs"
               >
                 {keyword}

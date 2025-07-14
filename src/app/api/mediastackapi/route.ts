@@ -10,11 +10,16 @@ interface MediastackNewsItem {
   image: string;
   published_at: string;
   source: string;
+  author?: string;
+  category?: string;
 }
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("query") || "";
+  const category = searchParams.get("category") || "";
+  const fromDate = searchParams.get("fromDate") || "";
+  const toDate = searchParams.get("toDate") || "";
   const page = parseInt(searchParams.get("page") || "1");
 
   const apiKey = MEDIASTACK_API_KEY;
@@ -26,18 +31,23 @@ export async function GET(request: NextRequest) {
   url.searchParams.append("languages", "en");
   url.searchParams.append("limit", limit.toString());
   url.searchParams.append("offset", offset.toString());
+
   if (query) url.searchParams.append("keywords", query);
+  if (category) url.searchParams.append("categories", category);
+  if (fromDate) url.searchParams.append("date", fromDate);
+  if (toDate) url.searchParams.append("date", toDate); // Mediastack only supports one `date`, so use the last valid one
 
   try {
     const response = await fetch(url.toString());
     const data = await response.json();
 
-    const articles = data.data.map((item: MediastackNewsItem) => ({
+    const articles = (data.data || []).map((item: MediastackNewsItem) => ({
       title: item.title,
       description: item.description,
       url: item.url,
       urlToImage: item.image,
       publishedAt: item.published_at,
+      author: item.author || "Unknown Author",
       source: { name: item.source || "Mediastack" },
     }));
 
