@@ -28,6 +28,13 @@ export async function GET(request: NextRequest) {
     const res = await fetch(url.toString());
     const data = await res.json();
 
+    if (!Array.isArray(data.news)) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Currents API error:', data);
+      }
+      return NextResponse.json({ error: 'Currents API error', details: data }, { status: 500 });
+    }
+
     const articles = (data.news || []).map((item: Record<string, unknown>) => ({
       title: item.title,
       description: item.description,
@@ -39,7 +46,10 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(articles);
-  } catch {
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Currents API fetch error:', error);
+    }
     return NextResponse.json({ error: "Failed to fetch news" }, { status: 500 });
   }
 }

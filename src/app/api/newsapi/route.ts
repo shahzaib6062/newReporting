@@ -21,11 +21,20 @@ export async function GET(request: NextRequest) {
   try {
     const response = await fetch(url.toString());
     const data = await response.json();
+    if (!Array.isArray(data.articles)) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('NewsAPI error:', data);
+      }
+      return NextResponse.json({ error: 'NewsAPI error', details: data }, { status: 500 });
+    }
     return NextResponse.json((data.articles || []).map((article: Record<string, unknown>) => ({
       ...article,
       author: article.author || "Unknown Author",
     })));
-  } catch {
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('NewsAPI fetch error:', error);
+    }
     return NextResponse.json({ error: "Failed to fetch news" }, { status: 500 });
   }
 }
