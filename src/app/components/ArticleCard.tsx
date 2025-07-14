@@ -1,10 +1,14 @@
-import { ExternalLink, Globe, User, Image as ImageIcon } from "lucide-react";
+import { ExternalLink, User, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 import { Article } from "../types/Article";
 import { Card, CardContent } from "./ui/card";
 
 export default function ArticleCard({ article }: { article: Article }) {
-  if (!article || !article.url || !article.title) return null;
-
+  if (!article?.url || !article?.title || !article?.source?.name) {
+    console.warn(" Skipping article due to missing fields:", article);
+    return null;
+  }
+  
   return (
     <a
       href={article.url}
@@ -19,10 +23,14 @@ export default function ArticleCard({ article }: { article: Article }) {
         {/* Image or Placeholder (fixed size) */}
         <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
           {article.urlToImage ? (
-            <img
+            <Image
               src={article.urlToImage}
               alt={article.title}
+              width={420}
+              height={192}
               className="w-full h-48 object-cover object-center"
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+              unoptimized
             />
           ) : (
             <ImageIcon className="w-12 h-12 text-gray-300" />

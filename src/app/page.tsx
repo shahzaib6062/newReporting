@@ -47,13 +47,6 @@ export default function Page() {
     setRefreshKey((k) => k + 1);
   };
 
-  const handleSavePreferences = (sources: string[], categories: string[]) => {
-    setPreferredSources(sources);
-    setPreferredCategories(categories);
-    setPreferencesOpen(false);
-    setRefreshKey((k) => k + 1);
-  };
-
   return (
     <>
       <Header onOpenPreferences={() => setPreferencesOpen(true)} />

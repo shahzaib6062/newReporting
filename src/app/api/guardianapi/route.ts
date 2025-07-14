@@ -1,17 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const GUARDIAN_API_KEY = process.env.GUARDIAN_API_KEY!;
+const API_KEY = process.env.GUARDIAN_API_KEY!;
 const BASE_URL = process.env.GUARDIAN_API_URL!;
-
-interface GuardianNewsItem {
-  webTitle: string;
-  webUrl: string;
-  webPublicationDate: string;
-  fields?: {
-    trailText?: string;
-    thumbnail?: string;
-  };
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -21,11 +11,10 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
 
   const url = new URL(`${BASE_URL}`);
-  url.searchParams.append("api-key", GUARDIAN_API_KEY);
+  url.searchParams.append("api-key", API_KEY);
   url.searchParams.append("show-fields", "thumbnail,trailText");
   url.searchParams.append("page-size", "20");
   url.searchParams.append("page", page.toString());
-
   if (query) url.searchParams.append("q", query);
   if (fromDate) url.searchParams.append("from-date", fromDate);
   if (toDate) url.searchParams.append("to-date", toDate);
@@ -34,7 +23,7 @@ export async function GET(request: NextRequest) {
     const res = await fetch(url.toString());
     const data = await res.json();
 
-    const articles = data.response.results.map((item: GuardianNewsItem) => ({
+    const articles = data.response.results.map((item: any) => ({
       title: item.webTitle,
       description: item.fields?.trailText || "",
       url: item.webUrl,
