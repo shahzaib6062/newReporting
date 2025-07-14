@@ -84,11 +84,11 @@ export default function Home({
     ];
 
     const fetchIfAllowed = async (sourceKey: string, endpoint: string) => {
-     if (
-  sources.length === 0 ||
-  sources.includes(sourceKey.toLowerCase()) ||
-  sources.includes(SOURCE_KEY_MAP[sourceKey] || sourceKey)
-) {
+      if (
+        sources.length === 0 ||
+        sources.includes(sourceKey) ||
+        sources.includes(capitalize(sourceKey))
+      ) {
         const paramsObj: Record<string, string> = {
           query: queryStr,
           page: pageNum.toString(),

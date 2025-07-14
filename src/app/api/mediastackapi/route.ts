@@ -1,34 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_KEY = process.env.MEDIASTACK_API_KEY!;
+const MEDIASTACK_API_KEY = process.env.MEDIASTACK_API_KEY!;
 const BASE_URL = process.env.MEDIASTACK_API_URL!;
+
+interface MediastackNewsItem {
+  title: string;
+  description: string;
+  url: string;
+  image: string;
+  published_at: string;
+  source: string;
+  author?: string;
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("query") || "";
-  const category = searchParams.get("category") || "";
-  const from = searchParams.get("fromDate") || "";
-  const to = searchParams.get("toDate") || "";
   const page = parseInt(searchParams.get("page") || "1");
 
+  const apiKey = MEDIASTACK_API_KEY;
   const limit = 20;
   const offset = (page - 1) * limit;
-  const url = new URL(`${BASE_URL}`);
 
-  url.searchParams.append("access_key", API_KEY);
+  const url = new URL(`${BASE_URL}`);
+  url.searchParams.append("access_key", apiKey);
   url.searchParams.append("languages", "en");
   url.searchParams.append("limit", limit.toString());
   url.searchParams.append("offset", offset.toString());
   if (query) url.searchParams.append("keywords", query);
-  if (category) url.searchParams.append("categories", category.toLowerCase());
-  if (to) url.searchParams.append("date", to);
-  else if (from) url.searchParams.append("date", from); // only one date allowed
 
   try {
     const response = await fetch(url.toString());
     const data = await response.json();
 
-    const articles = (data.data || []).map((item: any) => ({
+    const articles = data.data.map((item: MediastackNewsItem) => ({
       title: item.title,
       description: item.description,
       url: item.url,
