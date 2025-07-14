@@ -23,21 +23,31 @@ export async function GET(request: NextRequest) {
   if (topic) url.searchParams.append("topic", topic.toLowerCase());
 
   try {
-    const res = await fetch(url.toString());
-    const data = await res.json();
-
-    const articles = (data.articles || []).map((item: any) => ({
-      title: item.title,
-      description: item.description,
-      url: item.url,
-      urlToImage: item.image,
-      publishedAt: item.publishedAt,
-      author: item.author || "Unknown Author",
-      source: { name: item.source?.name || "GNews" },
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    if (!response.ok) {
+      // Log the full error for debugging
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.error('GNews API error:', data);
+      }
+      return NextResponse.json({ error: data.error || "Failed to fetch news" }, { status: 500 });
+    }
+    const articles = (data.articles || []).map((item: Record<string, unknown>) => ({
+      title: item['title'] as string,
+      description: item['description'] as string,
+      url: item['url'] as string,
+      urlToImage: item['image'] as string,
+      publishedAt: item['publishedAt'] as string,
+      author: (item['author'] as string) || "Unknown Author",
+      source: { name: (item['source'] && (item['source'] as Record<string, unknown>)['name']) as string || "GNews" },
     }));
-
     return NextResponse.json(articles);
-  } catch {
+  } catch (e) {
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('GNews API Exception:', e);
+    }
     return NextResponse.json({ error: "Failed to fetch news" }, { status: 500 });
   }
 }
